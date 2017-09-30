@@ -1,89 +1,178 @@
-# Project Title
+Image Slider
+=============================
 
-This image carousel was built for a client site, with the purpose of being able to view a product
-from many different angles (including inside). The carousel has zoom functionality, and includes
-scroll zooom, pinch zoom on mobile, and swipe scroll on mobile as well.
+## Synopsis
 
-## Getting Started
+Javascript code enabling the user to scroll through images, with zooming and dragging enabled. This example includes views from all angles of a utility trailer, with the ability to open the trailer and see inside.
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+## Code Example
 
-### Prerequisites
+First, the function that enables the carousel to scroll through all images:
 
-What things you need to install the software and how to install them
+```Javascript
 
-```
-Give examples
-```
+//Push all 360 images to the images array
+var images = $('.carousel-image');
+var currentIndex = 0;
+var imgAmt = images.length;
 
-### Installing
+//Define the variable for the image at the current step of the loop
+function cycleImages(){
+  images.removeClass('show-360');
+  $(".opened-image").removeClass("show-360").hide();
+  $(images).find('img').css({"left": "0", "top": "0"});
+  $(images).find('img').css({"height": "auto", "width": "100%"});
 
-A step by step series of examples that tell you have to get a development env running
+  var image = $('.carousel-image').eq(currentIndex);
 
-Say what the step will be
+  image.addClass('show-360');
+  images.children('img').removeAttr('id');
+  images.hide();
+  image.show();
 
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
+  //Enable image with class 'open-image' to reveal image class 'opened-image'
+  if(image.hasClass("open-image")){
+    $(".photo-caption").fadeIn(400);
+  }
+  else{
+    $(".photo-caption").hide();
+  }
+}
+//End cycleImages
 ```
 
-### And coding style tests
+Second, the function that enables zooming and dragging (using jQuery UI for the draggable capability):
 
-Explain what these tests test and why
+```javascript
+
+//Zoom functions
+
+  //Zoom in and out when the zoom buttons are clicked:
+  var zoomIn = function(){
+    var $image = $('.show-360').find('img');
+    var $height = $image.height();
+    var $width = $image.width();
+    // var $position = $image.position();
+
+    var $imageWindow = $(".image-box");
+
+    //Enable dragging once zoom has been clicked
+    $image.draggable({
+      drag: function( event, ui ){
+        //Trying to re-initialize these variables so that the drag function uses
+        //updated values
+        var $image = $('.show-360').find('img');
+        var $height = $image.height();
+        var $width = $image.width();
+        //Constrain the drag function to keep the edges of the image from entering
+        //the visible window
+        ui.position.left = Math.max(Math.min(ui.position.left, 0), -($width - $imageWindow.width() ) );
+        ui.position.top = Math.max(Math.min(ui.position.top, 0), -($height - $imageWindow.height() ) );
+
+      }
+    });
+
+    //Swap out the image for the highest resolution possible, and then zoom in
+    if($image.width() <= 2700){
+      var $position = $image.position();
+
+      var image_src = $image.attr("src");
+      var zoom_keyword = "@zoom";
+      var src_position = (image_src.length) - 4;
+      var zoom_src = [image_src.slice(0, src_position), zoom_keyword, image_src.slice(src_position)].join('');
+
+      if( image_src.includes("@zoom")){
+        //Leave the src attribute alone
+      }
+      else{
+        $(".show-360").html('<img src="' + zoom_src + '"/>');
+      }
+
+      $image.animate({
+        'height' : $height*1.5,
+        'width'  : $width*1.5,
+        'top'    : - ( ( ($height*1.5) - $imageWindow.height() )/2 ),
+        'left'   : - ( ( ($width*1.5) - $imageWindow.width() )/2 ),
+      });
+    }
+    else{
+      //Do nothing
+    }
+  }
+  //End zoomIn
+
+  var zoomOut = function(){
+    var $image = $('.show-360').find('img');
+    var $height = $image.height();
+    var $width = $image.width();
+    var $position = $image.position();
+
+    if($image.width() > 720){
+      $image.animate({
+        'height' : '100%',
+        'width'  : '100%',
+        'top'    : 0,
+        'left'   : 0
+      });
+    }
+    else{
+      //Do nothing
+    }
+  }
+  //End zoomOut
+
+  ```
+Third, the function that allows the user to take a look inside the utility trailer:
+
+```javascript
+
+  //Reveal open trailer picture when photo-caption button is clicked:
+  $(".photo-caption").click(function(){
+
+    if($(".photo-caption").text() === "Close Hatch"){
+      $(".opened-image").removeClass("show-360").hide();
+      $(".open-image").addClass("show-360").show();
+      $(".photo-caption").text("Click to Open Hatch")
+    }
+    else{
+      $(".open-image").removeClass("show-360").hide();
+      $(".opened-image").addClass("show-360").show();
+      $(".photo-caption").text("Close Hatch");
+    }
+  });
 
 ```
-Give an example
-```
 
-## Deployment
+## Motivation
 
-Add additional notes about how to deploy this on a live system
+I put together this functionality for a client, who wanted potential customers
+to be able to see his product from many angles and zoom in on the details. 
 
-## Built With
+## Dependencies
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
-
-## Authors
-
-* **Jeff Bass** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+jQuery Core 3.2.1
+jQuery UI basic CSS and JS (for the dragging function).
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+MIT License
 
-## Acknowledgments
+Copyright (c) 2017 Jeff Bass Design & Development
 
-* Hat tip to anyone who's code was used
-* Inspiration
-* etc
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
